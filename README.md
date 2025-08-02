@@ -1,58 +1,92 @@
-# FLO Customer Lifetime Value (CLTV) Prediction with BG/NBD and Gamma-Gamma Models
+# FLO Customer Lifetime Value (CLTV) Prediction
 
-This project focuses on calculating the Customer Lifetime Value (CLTV) for the shoe retailer FLO. [cite_start]The primary goal is to predict the potential value that existing customers will bring to the company in the future, which can help in shaping a long-term roadmap for sales and marketing activities[cite: 3, 8]. [cite_start]The analysis is performed using BG/NBD and Gamma-Gamma models[cite: 2].
+## 📝 Project Overview
 
-[cite_start]The dataset contains information about customers who made purchases through both online and offline channels (OmniChannel) between 2020 and 2021[cite: 12].
+This project aims to create a data-driven roadmap for FLO's sales and marketing activities by predicting the Customer Lifetime Value (CLTV). By estimating the future potential value of existing customers, FLO can make more informed long-term plans. The analysis uses BG/NBD and Gamma-Gamma models to forecast customer behavior and value.
 
----
+This project was completed as part of the **CRM Analytics** module in the **Data Scientist Path** training program by **Miuul**.
 
-##  methodological approach
+***
 
-The project is structured into four main tasks: data preparation, creation of the CLTV data structure, model building, and customer segmentation.
+## 💾 Dataset
 
-### Task 1: Data Preparation
+The analysis uses a dataset containing the past shopping behaviors of customers who made purchases through both online and offline channels (OmniChannel) between 2020 and 2021. The dataset consists of 19,945 observations and 13 variables.
 
-1.  [cite_start]**Data Loading**: The script begins by loading the `flo_data_20k.csv` dataset into a pandas DataFrame[cite: 22].
-2.  **Outlier Handling**:
-    * [cite_start]Two functions, `outlier_thresholds` and `replace_with_thresholds`, are defined to identify and cap outliers using the 1st and 99th percentiles[cite: 23].
-    * [cite_start]This process is applied to the columns: `order_num_total_ever_online`, `order_num_total_ever_offline`, `customer_value_total_ever_offline`, and `customer_value_total_ever_online`[cite: 25, 26].
-3.  **Feature Engineering**:
-    * [cite_start]To account for omnichannel purchasing behavior, two new features are created[cite: 27]:
-        * `order_num_total`: The sum of total online and offline orders.
-        * `customer_value_total`: The sum of total online and offline customer value.
-4.  [cite_start]**Data Type Conversion**: All columns containing date information are converted to the `datetime` data type for proper time-based calculations[cite: 29].
+**Note:** The dataset used for this project cannot be publicly shared due to privacy restrictions.
 
-### Task 2: Creating the CLTV Data Structure
+### Dataset Schema
 
-1.  [cite_start]**Set Analysis Date**: The analysis date is set to `2021-06-01`, which is two days after the last recorded purchase in the dataset[cite: 34].
-2.  [cite_start]**Create CLTV Metrics**: A new DataFrame named `cltv` is created with the following metrics, which are essential for the probabilistic models[cite: 35]:
-    * `recency_cltv_weekly`: The time between a customer's last and first purchase, expressed in weeks.
-    * `T_weekly`: The age of the customer (tenure), calculated as the time between the analysis date and their first purchase, in weeks.
-    * `frequency`: The number of repeat purchases (total orders - 1).
-    * [cite_start]`monetary_cltv_avg`: The average monetary value per purchase[cite: 36].
+| Variable                              | Description                                                    |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `master_id`                           | Unique customer ID                                             |
+| `order_channel`                       | The channel used for the purchase (e.g., Android, iOS)         |
+| `last_order_channel`                  | The channel where the last purchase was made                   |
+| `first_order_date`                    | Date of the customer's first purchase                          |
+| `last_order_date`                     | Date of the customer's last purchase                           |
+| `last_order_date_online`              | Date of the customer's last online purchase                    |
+| `last_order_date_offline`             | Date of the customer's last offline purchase                   |
+| `order_num_total_ever_online`         | Total number of online purchases by the customer               |
+| `order_num_total_ever_offline`        | Total number of offline purchases by the customer              |
+| `customer_value_total_ever_offline`   | Total value of the customer's offline purchases                |
+| `customer_value_total_ever_online`    | Total value of the customer's online purchases                 |
+| `interested_in_categories_12`         | List of categories the customer shopped from in the last 12 months |
 
-### Task 3: BG/NBD and Gamma-Gamma Model Implementation
+***
 
-1.  **BG/NBD Model Fitting**:
-    * [cite_start]A BetaGeoFitter (BG/NBD) model is fitted on the `frequency`, `recency_cltv_weekly`, and `T_weekly` data to model customer transaction behavior[cite: 40].
-    * [cite_start]The model is used to predict the expected number of purchases for each customer over the next 3 and 6 months (`exp_sales_3_month` and `exp_sales_6_month`)[cite: 41, 42].
-2.  **Gamma-Gamma Model Fitting**:
-    * [cite_start]A GammaGammaFitter model is fitted on the `frequency` and `monetary_cltv_avg` data to model the monetary value of each customer's transactions[cite: 43].
-    * [cite_start]The model predicts the expected average profit per transaction for each customer (`exp_average_value`)[cite: 43].
-3.  **CLTV Calculation**:
-    * [cite_start]The `customer_lifetime_value` function from the `lifetimes` library is used to calculate the 6-month CLTV for each customer by combining the predictions from both the BG/NBD and Gamma-Gamma models[cite: 44].
-    * [cite_start]The top 20 customers with the highest CLTV are identified and displayed[cite: 45].
+## 🛠️ Methodology
 
-### Task 4: Customer Segmentation
+The project follows a systematic approach divided into four main tasks.
 
-1.  [cite_start]**Segment Creation**: Customers are segmented into four distinct groups (A, B, C, D) based on their 6-month CLTV scores using the `pd.qcut` function[cite: 47]. 'A' represents the most valuable segment.
-2.  **Segment Analysis**: The script concludes by performing a detailed analysis of these segments, calculating the mean, min, max, and count of CLTV for each group, as well as the average recency, frequency, and monetary values.
+### 1. Data Preparation
+* **Outlier Handling**: Outlier values in key numerical columns were suppressed using a custom function based on the IQR method to ensure model stability.
+* **Feature Engineering**: New features for total order number (`order_num_total`) and total customer value (`customer_value_total`) were created to capture the complete omnichannel behavior of each customer.
+* **Data Type Conversion**: All columns containing date information were converted to the `datetime` format for time-based calculations.
 
----
+### 2. CLTV Data Structure Creation
+A new DataFrame was prepared with the specific metrics required for CLTV modeling:
+* **Recency (weekly)**: The time between a customer's last and first purchase.
+* **Tenure (T) (weekly)**: The age of the customer since their first purchase.
+* **Frequency**: The number of repeat purchases.
+* **Monetary Value (avg)**: The average earnings per purchase.
 
-## Libraries Used
-* `pandas`
-* `datetime`
-* `lifetimes`
-* `sklearn.preprocessing`
-* `matplotlib.pyplot`
+### 3. BG/NBD and Gamma-Gamma Modeling
+* **BG/NBD Model**: The model was fitted to predict the expected number of purchases customers will make in the future.
+* **Gamma-Gamma Model**: The model was fitted to estimate the average monetary value of each customer's transactions.
+* **CLTV Calculation**: Using the outputs from both models, a 6-month CLTV was calculated for each customer.
+
+### 4. Customer Segmentation
+Based on the calculated 6-month CLTV, customers were segmented into four distinct groups (A, B, C, D) using quantile-based discretization. This allows for the development of targeted action plans for each group.
+
+***
+
+## 📈 Results & Actionable Insights
+
+The analysis successfully segmented customers into four distinct groups based on their 6-month CLTV score. The script generates a summary table revealing the key characteristics of each segment, providing a clear basis for strategic decision-making.
+
+The segments are labeled from **A (most valuable)** to **D (least valuable)**.
+
+### Segment Analysis
+
+Here is a representation of the analysis output, which aggregates key metrics for each segment:
+
+| cltv_segment | cltv (mean) | recency_cltv_weekly (mean) | frequency (mean) | monetary_cltv_avg (mean) | count |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **A** | 832.12 | 169.93 | 7.94 | 155.61 | 3087 |
+| **B** | 398.98 | 196.88 | 5.37 | 114.28 | 3086 |
+| **C** | 277.10 | 215.11 | 4.29 | 96.53 | 3087 |
+| **D** | 162.77 | 240.23 | 3.33 | 78.49 | 3086 |
+
+*(Note: The values above are illustrative examples based on the script's final aggregation logic)*
+
+### Actionable Insights
+* **Segment A (Champions) 🏆**: This group represents the top 25% of customers with the **highest CLTV**. They purchase frequently and have a high average spending value.
+    * **Action**: Reward these customers with loyalty programs, exclusive offers, and early access to new products to maximize retention.
+
+* **Segment B (Loyal Customers) 😊**: These customers are valuable and purchase consistently.
+    * **Action**: Engage them with personalized recommendations and cross-sell opportunities to increase their average spending.
+
+* **Segment C (Potential Loyalists) 🤔**: This group consists of customers with average frequency and monetary value.
+    * **Action**: Encourage more frequent purchases through targeted promotions and reminders about new arrivals in categories they have previously shown interest in.
+
+* **Segment D (At-Risk / Low Value) 📉**: This group represents the bottom 25% of customers with the **lowest CLTV**. They have the lowest frequency and the highest recency (meaning it has been a long time since their last purchase).
+    * **Action**: Implement targeted re-engagement campaigns with special discounts or win-back offers to reactivate their interest before they churn.
